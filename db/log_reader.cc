@@ -31,14 +31,21 @@ Reader::Reader(SequentialFile* file, Reporter* reporter, bool checksum,
 Reader::~Reader() { delete[] backing_store_; }
 
 bool Reader::SkipToInitialBlock() {
+  // 块中偏移
+  // 这个变量的意思是说，后面在读的时候，要读的块的开头地址是什么？
+  // uint64_t start_read_block_location = xx. 
   const size_t offset_in_block = initial_offset_ % kBlockSize;
   uint64_t block_start_location = initial_offset_ - offset_in_block;
 
   // Don't search a block if we'd be in the trailer
+  // 如果给定的初始位置的块中偏移
+  // 刚好掉在了尾巴上的6个bytes以内。那么
+  // 这个时候，应该是需要直接切入到下一个block的。
   if (offset_in_block > kBlockSize - 6) {
     block_start_location += kBlockSize;
   }
 
+  // 注意end_of_buffer_offset的设置是块的开始地址。
   end_of_buffer_offset_ = block_start_location;
 
   // Skip to start of first block that can contain the initial record
